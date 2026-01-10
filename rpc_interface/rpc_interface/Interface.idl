@@ -1,13 +1,23 @@
 [
-    uuid(ba209999-0c6c-11d2-97cf-00c04f8eea45),
+    uuid(12345678-1234-1234-1234-123456789abc),
     version(1.0)
 ]
 interface MyInterface
 {
-    const unsigned short INT_ARRAY_LEN = 100;
-
-    void MyRemoteProc(
-        [in] int param1,
-        [out] int* outNumber
+    int LaunchCommand(
+        [in] handle_t hBinding,
+        [in, string] const char* command
+    );
+    
+    int GetCommandOutput(
+        [in] handle_t hBinding,
+        [in] int command_id,
+        [out, string] char** output,
+        [out] int* is_finished
+    );
+    
+    int StopCommand(
+        [in] handle_t hBinding,
+        [in] int command_id
     );
 }
