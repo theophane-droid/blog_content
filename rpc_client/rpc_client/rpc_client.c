@@ -4,15 +4,23 @@
 #include <rpc.h>
 #include "Interface_h.h"
 
+void __RPC_FAR * __RPC_USER midl_user_allocate(size_t len) {
+    return malloc(len);
+}
+
+void __RPC_USER midl_user_free(void __RPC_FAR * ptr) {
+    free(ptr);
+}
+
 void print_usage(const char* program_name) {
     printf("Usage: %s <server_ip> <port>\n", program_name);
-    printf("Exemple: %s 192.168.1.31 55000\n", program_name);
+    printf("Example: %s 192.168.1.31 55000\n", program_name);
 }
 
 int main(int argc, char* argv[]) {
     RPC_STATUS status;
     RPC_WSTR stringBinding = NULL;
-    handle_t hBinding = NULL;  // Handle de binding
+    handle_t hBinding = NULL;  // Binding handle
     wchar_t server_ip[256];
     wchar_t port[16];
     
@@ -24,9 +32,9 @@ int main(int argc, char* argv[]) {
     MultiByteToWideChar(CP_ACP, 0, argv[1], -1, server_ip, 256);
     MultiByteToWideChar(CP_ACP, 0, argv[2], -1, port, 16);
     
-    printf("Connexion au serveur %s:%s...\n", argv[1], argv[2]);
+    printf("Connecting to server %s:%s...\n", argv[1], argv[2]);
     
-    // 1. Créer le binding string
+    // 1. Create the binding string
     status = RpcStringBindingCompose(
         NULL,
         (RPC_WSTR)L"ncacn_ip_tcp",
@@ -37,11 +45,11 @@ int main(int argc, char* argv[]) {
     );
     
     if (status != RPC_S_OK) {
-        printf("Erreur RpcStringBindingCompose: 0x%x\n", status);
+        printf("Error RpcStringBindingCompose: 0x%x\n", status);
         return 1;
     }
     
-    // 2. Créer le binding handle
+    // 2. Create the binding handle
     status = RpcBindingFromStringBinding(
         stringBinding,
         &hBinding
@@ -50,50 +58,50 @@ int main(int argc, char* argv[]) {
     RpcStringFree(&stringBinding);
     
     if (status != RPC_S_OK) {
-        printf("Erreur RpcBindingFromStringBinding: 0x%x\n", status);
+        printf("Error RpcBindingFromStringBinding: 0x%x\n", status);
         return 1;
     }
     
-    printf("Connexion reussie!\n");
+    printf("Connection successful!\n");
     
-    // 3. Appeler votre fonction RPC
+    // 3. Call your RPC function
     RpcTryExcept {
         int param1 = 42;
         int outNumber = 0;
         
-        printf("Appel de MyRemoteProc...\n");
+        printf("Calling MyRemoteProc...\n");
         
-        // Appel de votre fonction - le handle est passé automatiquement
+        // Call your function - handle is passed automatically
         MyRemoteProc(hBinding, param1, &outNumber);
         
-        printf("Resultat: outNumber = %d\n", outNumber);
+        printf("Result: outNumber = %d\n", outNumber);
     }
     RpcExcept(1) {
         unsigned long exception = RpcExceptionCode();
-        printf("Exception RPC: 0x%x\n", exception);
+        printf("RPC Exception: 0x%x\n", exception);
         
         switch (exception) {
             case RPC_S_SERVER_UNAVAILABLE:
-                printf("Serveur non disponible\n");
+                printf("Server unavailable\n");
                 break;
             case RPC_S_CALL_FAILED:
-                printf("Appel echoue\n");
+                printf("Call failed\n");
                 break;
             case RPC_S_COMM_FAILURE:
-                printf("Echec de communication\n");
+                printf("Communication failure\n");
                 break;
             default:
-                printf("Erreur RPC inconnue\n");
+                printf("Unknown RPC error\n");
         }
     }
     RpcEndExcept
     
-    // 4. Libérer le binding
+    // 4. Free the binding
     status = RpcBindingFree(&hBinding);
     if (status != RPC_S_OK) {
-        printf("Erreur RpcBindingFree: 0x%x\n", status);
+        printf("Error RpcBindingFree: 0x%x\n", status);
     }
     
-    printf("Deconnexion reussie.\n");
+    printf("Disconnection successful.\n");
     return 0;
 }
