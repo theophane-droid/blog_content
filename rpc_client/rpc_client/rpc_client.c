@@ -14,13 +14,13 @@ void __RPC_USER midl_user_free(void __RPC_FAR * ptr) {
 
 void print_usage(const char* program_name) {
     printf("Usage: %s <server_ip> <port>\n", program_name);
-    printf("Example: %s 192.168.1.31 55000\n", program_name);
+    printf("Example: %s 192.168.1.31 50001\n", program_name);
 }
 
 int main(int argc, char* argv[]) {
     RPC_STATUS status;
     RPC_WSTR stringBinding = NULL;
-    handle_t hBinding = NULL;  // Binding handle
+    handle_t hBinding = NULL;
     wchar_t server_ip[256];
     wchar_t port[16];
     
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     
     printf("Connecting to server %s:%s...\n", argv[1], argv[2]);
     
-    // 1. Create the binding string
+    // Create the binding string
     status = RpcStringBindingCompose(
         NULL,
         (RPC_WSTR)L"ncacn_ip_tcp",
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // 2. Create the binding handle
+    // Create the binding handle
     status = RpcBindingFromStringBinding(
         stringBinding,
         &hBinding
@@ -62,18 +62,29 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
+    // Explicitly disable authentication
+    status = RpcBindingSetAuthInfo(
+        hBinding,
+        NULL,
+        RPC_C_AUTHN_LEVEL_NONE,  // No authentication
+        RPC_C_AUTHN_NONE,  // No authentication service
+        NULL,
+        RPC_C_AUTHZ_NONE  // No authorization
+    );
+    
+    if (status != RPC_S_OK) {
+        printf("Warning: RpcBindingSetAuthInfo failed: 0x%x (continuing anyway)\n", status);
+    }
+    
     printf("Connection successful!\n");
     
-    // 3. Call your RPC function
+    // Call RPC function
     RpcTryExcept {
         int param1 = 42;
         int outNumber = 0;
         
-        printf("Calling MyRemoteProc...\n");
-        
-        // Call your function - handle is passed automatically
+        printf("Calling MyRemoteProc(42)...\n");
         MyRemoteProc(hBinding, param1, &outNumber);
-        
         printf("Result: outNumber = %d\n", outNumber);
     }
     RpcExcept(1) {
@@ -82,7 +93,12 @@ int main(int argc, char* argv[]) {
         
         switch (exception) {
             case RPC_S_SERVER_UNAVAILABLE:
-                printf("Server unavailable\n");
+            case 0x6ba:
+                printf("Server unavailable - Make sure server is running!\n");
+                break;
+            case RPC_S_ACCESS_DENIED:
+            case 0x5:
+                printf("Access denied - Authentication issue\n");
                 break;
             case RPC_S_CALL_FAILED:
                 printf("Call failed\n");
@@ -96,7 +112,7 @@ int main(int argc, char* argv[]) {
     }
     RpcEndExcept
     
-    // 4. Free the binding
+    // Free the binding
     status = RpcBindingFree(&hBinding);
     if (status != RPC_S_OK) {
         printf("Error RpcBindingFree: 0x%x\n", status);
