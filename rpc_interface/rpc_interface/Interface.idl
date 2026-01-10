@@ -1,5 +1,5 @@
 [
-    uuid(12345678-1234-1234-1234-123456789abc),
+    uuid(cd99b06b-0c7b-422a-80da-1cb5758adbec),
     version(1.0)
 ]
 interface MyInterface
