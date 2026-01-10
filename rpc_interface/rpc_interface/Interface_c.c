@@ -7,7 +7,7 @@
 /* at Tue Jan 19 04:14:07 2038
  */
 /* Compiler settings for Interface.idl:
-    Oicf, W1, Zp8, env=Win64 (32b run), target_arch=AMD64 8.01.0628 
+    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.01.0628 
     protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
     VC __declspec() decoration level: 
@@ -16,10 +16,9 @@
 */
 /* @@MIDL_FILE_HEADING(  ) */
 
-#if defined(_M_AMD64)
+#if !defined(_M_IA64) && !defined(_M_AMD64) && !defined(_ARM_)
 
 
-#pragma warning( disable: 4049 )  /* more than 64k source lines */
 #if _MSC_VER >= 1200
 #pragma warning(push)
 #endif
@@ -27,13 +26,16 @@
 #pragma warning( disable: 4211 )  /* redefine extern to static */
 #pragma warning( disable: 4232 )  /* dllimport identity*/
 #pragma warning( disable: 4024 )  /* array to pointer mapping*/
+#pragma warning( disable: 4100 ) /* unreferenced arguments in x86 call */
+
+#pragma optimize("", off ) 
 
 #include <string.h>
 
-#include "Interface.h"
+#include "Interface_h.h"
 
-#define TYPE_FORMAT_STRING_SIZE   7                                 
-#define PROC_FORMAT_STRING_SIZE   43                                
+#define TYPE_FORMAT_STRING_SIZE   19                                
+#define PROC_FORMAT_STRING_SIZE   133                               
 #define EXPR_FORMAT_STRING_SIZE   1                                 
 #define TRANSMIT_AS_TABLE_SIZE    0            
 #define WIRE_MARSHAL_TABLE_SIZE   0            
@@ -123,14 +125,14 @@ extern const Interface_MIDL_EXPR_FORMAT_STRING Interface__MIDL_ExprFormatString;
 
 
 /* Standard interface: MyInterface, ver. 1.0,
-   GUID={0xba209999,0x0c6c,0x11d2,{0x97,0xcf,0x00,0xc0,0x4f,0x8e,0xea,0x45}} */
+   GUID={0x12345678,0x1234,0x1234,{0x12,0x34,0x12,0x34,0x56,0x78,0x9a,0xbc}} */
 
 
 
 static const RPC_CLIENT_INTERFACE MyInterface___RpcClientInterface =
     {
     sizeof(RPC_CLIENT_INTERFACE),
-    {{0xba209999,0x0c6c,0x11d2,{0x97,0xcf,0x00,0xc0,0x4f,0x8e,0xea,0x45}},{1,0}},
+    {{0x12345678,0x1234,0x1234,{0x12,0x34,0x12,0x34,0x56,0x78,0x9a,0xbc}},{1,0}},
     {{0x8A885D04,0x1CEB,0x11C9,{0x9F,0xE8,0x08,0x00,0x2B,0x10,0x48,0x60}},{2,0}},
     0,
     0,
@@ -152,64 +154,184 @@ extern const MIDL_STUB_DESC MyInterface_StubDesc;
 static RPC_BINDING_HANDLE MyInterface__MIDL_AutoBindHandle;
 
 
-void MyRemoteProc( 
-    /* [in] */ handle_t IDL_handle,
-    /* [in] */ int param1,
-    /* [out] */ int *outNumber)
+int LaunchCommand( 
+    /* [in] */ handle_t hBinding,
+    /* [string][in] */ const unsigned char *command)
 {
 
-    NdrClientCall2(
+    CLIENT_CALL_RETURN _RetVal;
+
+    _RetVal = NdrClientCall2(
                   ( PMIDL_STUB_DESC  )&MyInterface_StubDesc,
                   (PFORMAT_STRING) &Interface__MIDL_ProcFormatString.Format[0],
-                  IDL_handle,
-                  param1,
-                  outNumber);
+                  ( unsigned char * )&hBinding);
+    return ( int  )_RetVal.Simple;
     
 }
 
 
-#if !defined(__RPC_WIN64__)
+int GetCommandOutput( 
+    /* [in] */ handle_t hBinding,
+    /* [in] */ int command_id,
+    /* [string][out] */ unsigned char **output,
+    /* [out] */ int *is_finished)
+{
+
+    CLIENT_CALL_RETURN _RetVal;
+
+    _RetVal = NdrClientCall2(
+                  ( PMIDL_STUB_DESC  )&MyInterface_StubDesc,
+                  (PFORMAT_STRING) &Interface__MIDL_ProcFormatString.Format[40],
+                  ( unsigned char * )&hBinding);
+    return ( int  )_RetVal.Simple;
+    
+}
+
+
+int StopCommand( 
+    /* [in] */ handle_t hBinding,
+    /* [in] */ int command_id)
+{
+
+    CLIENT_CALL_RETURN _RetVal;
+
+    _RetVal = NdrClientCall2(
+                  ( PMIDL_STUB_DESC  )&MyInterface_StubDesc,
+                  (PFORMAT_STRING) &Interface__MIDL_ProcFormatString.Format[92],
+                  ( unsigned char * )&hBinding);
+    return ( int  )_RetVal.Simple;
+    
+}
+
+
+#if !defined(__RPC_WIN32__)
 #error  Invalid build platform for this stub.
 #endif
+#if !(TARGET_IS_NT60_OR_LATER)
+#error You need Windows Vista or later to run this stub because it uses these features:
+#error   compiled for Windows Vista.
+#error However, your C/C++ compilation flags indicate you intend to run this app on earlier systems.
+#error This app will fail with the RPC_X_WRONG_STUB_VERSION error.
+#endif
+
 
 static const Interface_MIDL_PROC_FORMAT_STRING Interface__MIDL_ProcFormatString =
     {
         0,
         {
 
-	/* Procedure MyRemoteProc */
+	/* Procedure LaunchCommand */
 
 			0x0,		/* 0 */
 			0x48,		/* Old Flags:  */
 /*  2 */	NdrFcLong( 0x0 ),	/* 0 */
 /*  6 */	NdrFcShort( 0x0 ),	/* 0 */
-/*  8 */	NdrFcShort( 0x18 ),	/* X64 Stack size/offset = 24 */
+/*  8 */	NdrFcShort( 0xc ),	/* x86 Stack size/offset = 12 */
 /* 10 */	0x32,		/* FC_BIND_PRIMITIVE */
 			0x0,		/* 0 */
-/* 12 */	NdrFcShort( 0x0 ),	/* X64 Stack size/offset = 0 */
-/* 14 */	NdrFcShort( 0x8 ),	/* 8 */
-/* 16 */	NdrFcShort( 0x1c ),	/* 28 */
-/* 18 */	0x40,		/* Oi2 Flags:  has ext, */
+/* 12 */	NdrFcShort( 0x0 ),	/* x86 Stack size/offset = 0 */
+/* 14 */	NdrFcShort( 0x0 ),	/* 0 */
+/* 16 */	NdrFcShort( 0x8 ),	/* 8 */
+/* 18 */	0x46,		/* Oi2 Flags:  clt must size, has return, has ext, */
 			0x2,		/* 2 */
-/* 20 */	0xa,		/* 10 */
+/* 20 */	0x8,		/* 8 */
 			0x1,		/* Ext Flags:  new corr desc, */
 /* 22 */	NdrFcShort( 0x0 ),	/* 0 */
 /* 24 */	NdrFcShort( 0x0 ),	/* 0 */
 /* 26 */	NdrFcShort( 0x0 ),	/* 0 */
-/* 28 */	NdrFcShort( 0x0 ),	/* 0 */
 
-	/* Parameter param1 */
+	/* Parameter command */
 
-/* 30 */	NdrFcShort( 0x48 ),	/* Flags:  in, base type, */
-/* 32 */	NdrFcShort( 0x8 ),	/* X64 Stack size/offset = 8 */
-/* 34 */	0x8,		/* FC_LONG */
+/* 28 */	NdrFcShort( 0x10b ),	/* Flags:  must size, must free, in, simple ref, */
+/* 30 */	NdrFcShort( 0x4 ),	/* x86 Stack size/offset = 4 */
+/* 32 */	NdrFcShort( 0x4 ),	/* Type Offset=4 */
+
+	/* Return value */
+
+/* 34 */	NdrFcShort( 0x70 ),	/* Flags:  out, return, base type, */
+/* 36 */	NdrFcShort( 0x8 ),	/* x86 Stack size/offset = 8 */
+/* 38 */	0x8,		/* FC_LONG */
 			0x0,		/* 0 */
 
-	/* Parameter outNumber */
+	/* Procedure GetCommandOutput */
 
-/* 36 */	NdrFcShort( 0x2150 ),	/* Flags:  out, base type, simple ref, srv alloc size=8 */
-/* 38 */	NdrFcShort( 0x10 ),	/* X64 Stack size/offset = 16 */
-/* 40 */	0x8,		/* FC_LONG */
+/* 40 */	0x0,		/* 0 */
+			0x48,		/* Old Flags:  */
+/* 42 */	NdrFcLong( 0x0 ),	/* 0 */
+/* 46 */	NdrFcShort( 0x1 ),	/* 1 */
+/* 48 */	NdrFcShort( 0x14 ),	/* x86 Stack size/offset = 20 */
+/* 50 */	0x32,		/* FC_BIND_PRIMITIVE */
+			0x0,		/* 0 */
+/* 52 */	NdrFcShort( 0x0 ),	/* x86 Stack size/offset = 0 */
+/* 54 */	NdrFcShort( 0x8 ),	/* 8 */
+/* 56 */	NdrFcShort( 0x24 ),	/* 36 */
+/* 58 */	0x45,		/* Oi2 Flags:  srv must size, has return, has ext, */
+			0x4,		/* 4 */
+/* 60 */	0x8,		/* 8 */
+			0x1,		/* Ext Flags:  new corr desc, */
+/* 62 */	NdrFcShort( 0x0 ),	/* 0 */
+/* 64 */	NdrFcShort( 0x0 ),	/* 0 */
+/* 66 */	NdrFcShort( 0x0 ),	/* 0 */
+
+	/* Parameter command_id */
+
+/* 68 */	NdrFcShort( 0x48 ),	/* Flags:  in, base type, */
+/* 70 */	NdrFcShort( 0x4 ),	/* x86 Stack size/offset = 4 */
+/* 72 */	0x8,		/* FC_LONG */
+			0x0,		/* 0 */
+
+	/* Parameter output */
+
+/* 74 */	NdrFcShort( 0x2013 ),	/* Flags:  must size, must free, out, srv alloc size=8 */
+/* 76 */	NdrFcShort( 0x8 ),	/* x86 Stack size/offset = 8 */
+/* 78 */	NdrFcShort( 0x6 ),	/* Type Offset=6 */
+
+	/* Parameter is_finished */
+
+/* 80 */	NdrFcShort( 0x2150 ),	/* Flags:  out, base type, simple ref, srv alloc size=8 */
+/* 82 */	NdrFcShort( 0xc ),	/* x86 Stack size/offset = 12 */
+/* 84 */	0x8,		/* FC_LONG */
+			0x0,		/* 0 */
+
+	/* Return value */
+
+/* 86 */	NdrFcShort( 0x70 ),	/* Flags:  out, return, base type, */
+/* 88 */	NdrFcShort( 0x10 ),	/* x86 Stack size/offset = 16 */
+/* 90 */	0x8,		/* FC_LONG */
+			0x0,		/* 0 */
+
+	/* Procedure StopCommand */
+
+/* 92 */	0x0,		/* 0 */
+			0x48,		/* Old Flags:  */
+/* 94 */	NdrFcLong( 0x0 ),	/* 0 */
+/* 98 */	NdrFcShort( 0x2 ),	/* 2 */
+/* 100 */	NdrFcShort( 0xc ),	/* x86 Stack size/offset = 12 */
+/* 102 */	0x32,		/* FC_BIND_PRIMITIVE */
+			0x0,		/* 0 */
+/* 104 */	NdrFcShort( 0x0 ),	/* x86 Stack size/offset = 0 */
+/* 106 */	NdrFcShort( 0x8 ),	/* 8 */
+/* 108 */	NdrFcShort( 0x8 ),	/* 8 */
+/* 110 */	0x44,		/* Oi2 Flags:  has return, has ext, */
+			0x2,		/* 2 */
+/* 112 */	0x8,		/* 8 */
+			0x1,		/* Ext Flags:  new corr desc, */
+/* 114 */	NdrFcShort( 0x0 ),	/* 0 */
+/* 116 */	NdrFcShort( 0x0 ),	/* 0 */
+/* 118 */	NdrFcShort( 0x0 ),	/* 0 */
+
+	/* Parameter command_id */
+
+/* 120 */	NdrFcShort( 0x48 ),	/* Flags:  in, base type, */
+/* 122 */	NdrFcShort( 0x4 ),	/* x86 Stack size/offset = 4 */
+/* 124 */	0x8,		/* FC_LONG */
+			0x0,		/* 0 */
+
+	/* Return value */
+
+/* 126 */	NdrFcShort( 0x70 ),	/* Flags:  out, return, base type, */
+/* 128 */	NdrFcShort( 0x8 ),	/* x86 Stack size/offset = 8 */
+/* 130 */	0x8,		/* FC_LONG */
 			0x0,		/* 0 */
 
 			0x0
@@ -222,8 +344,21 @@ static const Interface_MIDL_TYPE_FORMAT_STRING Interface__MIDL_TypeFormatString 
         {
 			NdrFcShort( 0x0 ),	/* 0 */
 /*  2 */	
+			0x11, 0x8,	/* FC_RP [simple_pointer] */
+/*  4 */	
+			0x22,		/* FC_C_CSTRING */
+			0x5c,		/* FC_PAD */
+/*  6 */	
+			0x11, 0x14,	/* FC_RP [alloced_on_stack] [pointer_deref] */
+/*  8 */	NdrFcShort( 0x2 ),	/* Offset= 2 (10) */
+/* 10 */	
+			0x12, 0x8,	/* FC_UP [simple_pointer] */
+/* 12 */	
+			0x22,		/* FC_C_CSTRING */
+			0x5c,		/* FC_PAD */
+/* 14 */	
 			0x11, 0xc,	/* FC_RP [alloced_on_stack] [simple_pointer] */
-/*  4 */	0x8,		/* FC_LONG */
+/* 16 */	0x8,		/* FC_LONG */
 			0x5c,		/* FC_PAD */
 
 			0x0
@@ -232,7 +367,9 @@ static const Interface_MIDL_TYPE_FORMAT_STRING Interface__MIDL_TypeFormatString 
 
 static const unsigned short MyInterface_FormatStringOffsetTable[] =
     {
-    0
+    0,
+    40,
+    92
     };
 
 
@@ -251,7 +388,7 @@ static const MIDL_STUB_DESC MyInterface_StubDesc =
     0,
     Interface__MIDL_TypeFormatString.Format,
     1, /* -error bounds_check flag */
-    0x50002, /* Ndr library version */
+    0x60001, /* Ndr library version */
     0,
     0x8010274, /* MIDL Version 8.1.628 */
     0,
@@ -265,10 +402,11 @@ static const MIDL_STUB_DESC MyInterface_StubDesc =
 #ifdef __cplusplus
 }
 #endif
+#pragma optimize("", on )
 #if _MSC_VER >= 1200
 #pragma warning(pop)
 #endif
 
 
-#endif /* defined(_M_AMD64)*/
+#endif /* !defined(_M_IA64) && !defined(_M_AMD64) && !defined(_ARM_) */
 

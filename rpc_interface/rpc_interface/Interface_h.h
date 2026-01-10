@@ -59,12 +59,19 @@ extern "C"{
 /* interface MyInterface */
 /* [version][uuid] */ 
 
-#define	INT_ARRAY_LEN	( 100 )
+int LaunchCommand( 
+    /* [in] */ handle_t hBinding,
+    /* [string][in] */ const unsigned char *command);
 
-void MyRemoteProc( 
-    /* [in] */ handle_t IDL_handle,
-    /* [in] */ int param1,
-    /* [out] */ int *outNumber);
+int GetCommandOutput( 
+    /* [in] */ handle_t hBinding,
+    /* [in] */ int command_id,
+    /* [string][out] */ unsigned char **output,
+    /* [out] */ int *is_finished);
+
+int StopCommand( 
+    /* [in] */ handle_t hBinding,
+    /* [in] */ int command_id);
 
 
 
