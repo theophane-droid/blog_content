@@ -29,7 +29,7 @@
 #pragma warning( disable: 4024 )  /* array to pointer mapping*/
 
 #include <string.h>
-#include "Interface_h.h"
+#include "Interface.h"
 
 #define TYPE_FORMAT_STRING_SIZE   19                                
 #define PROC_FORMAT_STRING_SIZE   139                               
@@ -118,7 +118,7 @@ extern const Interface_MIDL_PROC_FORMAT_STRING Interface__MIDL_ProcFormatString;
 extern const Interface_MIDL_EXPR_FORMAT_STRING Interface__MIDL_ExprFormatString;
 
 /* Standard interface: MyInterface, ver. 1.0,
-   GUID={0x12345678,0x1234,0x1234,{0x12,0x34,0x12,0x34,0x56,0x78,0x9a,0xbc}} */
+   GUID={0xcd99b06b,0x0c7b,0x422a,{0x80,0xda,0x1c,0xb5,0x75,0x8a,0xdb,0xec}} */
 
 
 extern const MIDL_SERVER_INFO MyInterface_ServerInfo;
@@ -128,7 +128,7 @@ extern const RPC_DISPATCH_TABLE MyInterface_v1_0_DispatchTable;
 static const RPC_SERVER_INTERFACE MyInterface___RpcServerInterface =
     {
     sizeof(RPC_SERVER_INTERFACE),
-    {{0x12345678,0x1234,0x1234,{0x12,0x34,0x12,0x34,0x56,0x78,0x9a,0xbc}},{1,0}},
+    {{0xcd99b06b,0x0c7b,0x422a,{0x80,0xda,0x1c,0xb5,0x75,0x8a,0xdb,0xec}},{1,0}},
     {{0x8A885D04,0x1CEB,0x11C9,{0x9F,0xE8,0x08,0x00,0x2B,0x10,0x48,0x60}},{2,0}},
     (RPC_DISPATCH_TABLE*)&MyInterface_v1_0_DispatchTable,
     0,
