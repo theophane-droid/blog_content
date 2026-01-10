@@ -30,7 +30,7 @@
 
 #include <string.h>
 
-#include "Interface.h"
+#include "Interface_h.h"
 
 #define TYPE_FORMAT_STRING_SIZE   7                                 
 #define PROC_FORMAT_STRING_SIZE   43                                

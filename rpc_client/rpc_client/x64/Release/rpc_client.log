@@ -1,0 +1,7 @@
+﻿  rpc_client.c
+C:\Users\myuser\Desktop\blog_content\rpc_client\rpc_client\rpc_client.c(50,5): error C2065: 'MyInterface_IfHandle': undeclared identifier
+C:\Users\myuser\Desktop\blog_content\rpc_client\rpc_client\rpc_client.c(50,5): warning C4047: 'function': 'RPC_BINDING_HANDLE *' differs in levels of indirection from 'int *'
+C:\Users\myuser\Desktop\blog_content\rpc_client\rpc_client\rpc_client.c(49,9): warning C4022: 'RpcBindingFromStringBindingW': pointer mismatch for actual parameter 2
+C:\Users\myuser\Desktop\blog_content\rpc_client\rpc_client\rpc_client.c(92,41): error C2065: 'MyInterface_IfHandle': undeclared identifier
+C:\Users\myuser\Desktop\blog_content\rpc_client\rpc_client\rpc_client.c(92,41): warning C4047: 'function': 'RPC_BINDING_HANDLE *' differs in levels of indirection from 'int *'
+C:\Users\myuser\Desktop\blog_content\rpc_client\rpc_client\rpc_client.c(92,20): warning C4022: 'RpcBindingFree': pointer mismatch for actual parameter 1
