@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <rpc.h>
 #include "Interface_h.h"
 
@@ -14,7 +15,7 @@ void __RPC_USER midl_user_free(void __RPC_FAR * ptr) {
 
 void print_usage(const char* program_name) {
     printf("Usage: %s <server_ip> <port>\n", program_name);
-    printf("Example: %s 192.168.1.31 50001\n", program_name);
+    printf("Example: %s localhost 50001\n", program_name);
 }
 
 int main(int argc, char* argv[]) {
@@ -34,27 +35,15 @@ int main(int argc, char* argv[]) {
     
     printf("Connecting to server %s:%s...\n", argv[1], argv[2]);
     
-    // Create the binding string
-    status = RpcStringBindingCompose(
-        NULL,
-        (RPC_WSTR)L"ncacn_ip_tcp",
-        server_ip,
-        port,
-        NULL,
-        &stringBinding
-    );
+    status = RpcStringBindingCompose(NULL, (RPC_WSTR)L"ncacn_ip_tcp", 
+                                     server_ip, port, NULL, &stringBinding);
     
     if (status != RPC_S_OK) {
         printf("Error RpcStringBindingCompose: 0x%x\n", status);
         return 1;
     }
     
-    // Create the binding handle
-    status = RpcBindingFromStringBinding(
-        stringBinding,
-        &hBinding
-    );
-    
+    status = RpcBindingFromStringBinding(stringBinding, &hBinding);
     RpcStringFree(&stringBinding);
     
     if (status != RPC_S_OK) {
@@ -62,62 +51,82 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Explicitly disable authentication
-    status = RpcBindingSetAuthInfo(
-        hBinding,
-        NULL,
-        RPC_C_AUTHN_LEVEL_NONE,  // No authentication
-        RPC_C_AUTHN_NONE,  // No authentication service
-        NULL,
-        RPC_C_AUTHZ_NONE  // No authorization
-    );
+    RpcBindingSetAuthInfo(hBinding, NULL, RPC_C_AUTHN_LEVEL_NONE, 
+                          RPC_C_AUTHN_NONE, NULL, RPC_C_AUTHZ_NONE);
     
-    if (status != RPC_S_OK) {
-        printf("Warning: RpcBindingSetAuthInfo failed: 0x%x (continuing anyway)\n", status);
-    }
+    printf("Connection successful!\n\n");
     
-    printf("Connection successful!\n");
+    // Interactive menu
+    char choice[10];
+    int current_cmd_id = -1;
     
-    // Call RPC function
-    RpcTryExcept {
-        int param1 = 42;
-        int outNumber = 0;
+    while (1) {
+        printf("\n=== RPC Command Executor ===\n");
+        printf("1. Launch command\n");
+        printf("2. Get command output\n");
+        printf("3. Stop command\n");
+        printf("q. Quit\n");
+        printf("Choice: ");
         
-        printf("Calling MyRemoteProc(42)...\n");
-        MyRemoteProc(hBinding, param1, &outNumber);
-        printf("Result: outNumber = %d\n", outNumber);
-    }
-    RpcExcept(1) {
-        unsigned long exception = RpcExceptionCode();
-        printf("RPC Exception: 0x%x\n", exception);
+        if (fgets(choice, sizeof(choice), stdin) == NULL) break;
         
-        switch (exception) {
-            case RPC_S_SERVER_UNAVAILABLE:
-            case 0x6ba:
-                printf("Server unavailable - Make sure server is running!\n");
-                break;
-            case RPC_S_ACCESS_DENIED:
-            case 0x5:
-                printf("Access denied - Authentication issue\n");
-                break;
-            case RPC_S_CALL_FAILED:
-                printf("Call failed\n");
-                break;
-            case RPC_S_COMM_FAILURE:
-                printf("Communication failure\n");
-                break;
-            default:
-                printf("Unknown RPC error\n");
+        if (choice[0] == 'q' || choice[0] == 'Q') break;
+        
+        RpcTryExcept {
+            if (choice[0] == '1') {
+                char command[1024];
+                printf("Enter command: ");
+                if (fgets(command, sizeof(command), stdin)) {
+                    command[strcspn(command, "\n")] = 0;  // Remove newline
+                    
+                    current_cmd_id = LaunchCommand(hBinding, command);
+                    if (current_cmd_id > 0) {
+                        printf("Command launched with ID: %d\n", current_cmd_id);
+                    } else {
+                        printf("Failed to launch command\n");
+                    }
+                }
+            }
+            else if (choice[0] == '2') {
+                if (current_cmd_id <= 0) {
+                    printf("No command launched yet!\n");
+                } else {
+                    char* output = NULL;
+                    int is_finished = 0;
+                    
+                    int result = GetCommandOutput(hBinding, current_cmd_id, &output, &is_finished);
+                    
+                    if (result == 0 && output) {
+                        printf("\n--- Command Output (ID: %d) ---\n", current_cmd_id);
+                        printf("%s", output);
+                        printf("\n--- %s ---\n", is_finished ? "FINISHED" : "RUNNING");
+                        midl_user_free(output);
+                    } else {
+                        printf("Command not found or error\n");
+                    }
+                }
+            }
+            else if (choice[0] == '3') {
+                if (current_cmd_id <= 0) {
+                    printf("No command to stop!\n");
+                } else {
+                    int result = StopCommand(hBinding, current_cmd_id);
+                    if (result == 0) {
+                        printf("Command %d stopped\n", current_cmd_id);
+                        current_cmd_id = -1;
+                    } else {
+                        printf("Failed to stop command\n");
+                    }
+                }
+            }
         }
-    }
-    RpcEndExcept
-    
-    // Free the binding
-    status = RpcBindingFree(&hBinding);
-    if (status != RPC_S_OK) {
-        printf("Error RpcBindingFree: 0x%x\n", status);
+        RpcExcept(1) {
+            printf("RPC Exception: 0x%x\n", RpcExceptionCode());
+        }
+        RpcEndExcept
     }
     
-    printf("Disconnection successful.\n");
+    RpcBindingFree(&hBinding);
+    printf("Disconnected.\n");
     return 0;
 }
