@@ -61,7 +61,7 @@ extern "C"{
 
 int LaunchCommand( 
     /* [in] */ handle_t hBinding,
-    /* [string][in] */ const unsigned char *command);
+    /* [string][in] */ unsigned char *command);
 
 int GetCommandOutput( 
     /* [in] */ handle_t hBinding,

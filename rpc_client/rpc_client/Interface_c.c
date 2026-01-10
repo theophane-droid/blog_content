@@ -156,7 +156,7 @@ static RPC_BINDING_HANDLE MyInterface__MIDL_AutoBindHandle;
 
 int LaunchCommand( 
     /* [in] */ handle_t hBinding,
-    /* [string][in] */ const unsigned char *command)
+    /* [string][in] */ unsigned char *command)
 {
 
     CLIENT_CALL_RETURN _RetVal;
