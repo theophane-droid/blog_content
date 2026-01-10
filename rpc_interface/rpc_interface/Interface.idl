@@ -4,11 +4,13 @@
 ]
 interface MyInterface
 {
+    // Launch a command asynchronously and return a command ID
     int LaunchCommand(
         [in] handle_t hBinding,
-        [in, string] const char* command
+        [in, string] char* command
     );
     
+    // Get the output of a running/completed command
     int GetCommandOutput(
         [in] handle_t hBinding,
         [in] int command_id,
@@ -16,6 +18,7 @@ interface MyInterface
         [out] int* is_finished
     );
     
+    // Stop/kill a running command
     int StopCommand(
         [in] handle_t hBinding,
         [in] int command_id
