@@ -127,7 +127,7 @@ DWORD WINAPI CommandReaderThread(LPVOID param) {
 }
 
 // RPC function: Launch a command
-int LaunchCommand(handle_t hBinding, const char* command) {
+int LaunchCommand(handle_t hBinding, char* command) {
     printf("LaunchCommand called: %s\n", command);
     
     InitializeCommands();
