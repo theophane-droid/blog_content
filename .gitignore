@@ -1,7 +1,6 @@
 *.tlog/
 *.pdb
 *.idb
-*.exe
 *.obj
 .vs/
 x64/
