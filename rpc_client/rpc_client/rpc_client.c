@@ -65,6 +65,7 @@ int main(int argc, char* argv[]) {
         printf("1. Launch command\n");
         printf("2. Get command output\n");
         printf("3. Stop command\n");
+        printf("4. Interactive shell\n");
         printf("q. Quit\n");
         printf("Choice: ");
         
@@ -119,6 +120,46 @@ int main(int argc, char* argv[]) {
                     }
                 }
             }
+            else if (choice[0] == '4') {
+                char command[1024];
+
+                printf("\n[RPC SHELL] Type 'exit' to quit\n");
+
+                while (1) {
+                    printf("rpc> ");
+                    if (!fgets(command, sizeof(command), stdin))
+                        break;
+
+                    command[strcspn(command, "\n")] = 0;
+
+                    if (strcmp(command, "exit") == 0)
+                        break;
+
+                    int cmd_id = LaunchCommand(hBinding, command);
+                    if (cmd_id <= 0) {
+                        printf("Failed to launch command\n");
+                        continue;
+                    }
+
+                    // Poll output
+                    while (1) {
+                        char* output = NULL;
+                        int finished = 0;
+
+                        int res = GetCommandOutput(hBinding, cmd_id, &output, &finished);
+                        if (res == 0 && output) {
+                            printf("%s", output);
+                            midl_user_free(output);
+                        }
+
+                        if (finished)
+                            break;
+
+                        Sleep(300);
+                    }
+                }
+            }
+
         }
         RpcExcept(1) {
             printf("RPC Exception: 0x%x\n", RpcExceptionCode());
