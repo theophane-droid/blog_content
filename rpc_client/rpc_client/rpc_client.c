@@ -14,8 +14,15 @@ void __RPC_USER midl_user_free(void __RPC_FAR * ptr) {
 }
 
 void print_usage(const char* program_name) {
-    printf("Usage: %s <server_ip> <port>\n", program_name);
-    printf("Example: %s localhost 50001\n", program_name);
+    printf("Usage: %s [-e] <server_ip> [<port>]\n", program_name);
+    printf("\nOptions:\n");
+    printf("  -e              Use endpoint mapper (port 135) to discover service\n");
+    printf("  <server_ip>     IP address or hostname of the server\n");
+    printf("  <port>          Port number (only without -e flag)\n");
+    printf("\nExamples:\n");
+    printf("  %s localhost 50001        - Connect to specific port\n", program_name);
+    printf("  %s -e localhost           - Use endpoint mapper to discover port\n", program_name);
+    printf("  %s -e 192.168.1.31        - Use endpoint mapper on remote server\n", program_name);
 }
 
 int main(int argc, char* argv[]) {
@@ -23,26 +30,79 @@ int main(int argc, char* argv[]) {
     RPC_WSTR stringBinding = NULL;
     handle_t hBinding = NULL;
     wchar_t server_ip[256];
-    wchar_t port[16];
+    wchar_t port[16] = {0};
+    BOOL use_endpoint_mapper = FALSE;
+    int arg_idx = 1;
     
-    if (argc != 3) {
+    // Parse command line arguments
+    if (argc < 2 || argc > 4) {
         print_usage(argv[0]);
         return 1;
     }
     
-    MultiByteToWideChar(CP_ACP, 0, argv[1], -1, server_ip, 256);
-    MultiByteToWideChar(CP_ACP, 0, argv[2], -1, port, 16);
+    // Check for -e flag
+    if (strcmp(argv[1], "-e") == 0) {
+        use_endpoint_mapper = TRUE;
+        arg_idx = 2;
+        
+        if (argc < 3) {
+            print_usage(argv[0]);
+            return 1;
+        }
+    } else {
+        // Without -e, we need exactly 3 arguments (program, ip, port)
+        if (argc != 3) {
+            print_usage(argv[0]);
+            return 1;
+        }
+    }
     
-    printf("Connecting to server %s:%s...\n", argv[1], argv[2]);
+    // Get server IP
+    MultiByteToWideChar(CP_ACP, 0, argv[arg_idx], -1, server_ip, 256);
     
-    status = RpcStringBindingCompose(NULL, (RPC_WSTR)L"ncacn_ip_tcp", 
-                                     server_ip, port, NULL, &stringBinding);
+    // Get port if not using endpoint mapper
+    if (!use_endpoint_mapper) {
+        if (argc > arg_idx + 1) {
+            MultiByteToWideChar(CP_ACP, 0, argv[arg_idx + 1], -1, port, 16);
+        } else {
+            print_usage(argv[0]);
+            return 1;
+        }
+    }
+    
+    if (use_endpoint_mapper) {
+        printf("Connecting to server %ls using endpoint mapper...\n", server_ip);
+        
+        // Create binding string without port - will query endpoint mapper
+        status = RpcStringBindingCompose(
+            NULL,
+            (RPC_WSTR)L"ncacn_ip_tcp",
+            server_ip,
+            NULL,  // NULL = query endpoint mapper on port 135
+            NULL,
+            &stringBinding
+        );
+        
+    } else {
+        printf("Connecting to server %ls:%ls...\n", server_ip, port);
+        
+        // Create binding string with specific port
+        status = RpcStringBindingCompose(
+            NULL,
+            (RPC_WSTR)L"ncacn_ip_tcp",
+            server_ip,
+            port,
+            NULL,
+            &stringBinding
+        );
+    }
     
     if (status != RPC_S_OK) {
         printf("Error RpcStringBindingCompose: 0x%x\n", status);
         return 1;
     }
     
+    // Create binding handle
     status = RpcBindingFromStringBinding(stringBinding, &hBinding);
     RpcStringFree(&stringBinding);
     
@@ -51,6 +111,26 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
+    // If using endpoint mapper, resolve the endpoint
+    if (use_endpoint_mapper) {
+        printf("Resolving endpoint from endpoint mapper...\n");
+        
+        status = RpcEpResolveBinding(hBinding, MyInterface_v1_0_c_ifspec);
+        
+        if (status != RPC_S_OK) {
+            printf("Error RpcEpResolveBinding: 0x%x\n", status);
+            printf("Make sure:\n");
+            printf("  1. Server is running with -e flag\n");
+            printf("  2. Port 135 (endpoint mapper) is accessible\n");
+            printf("  3. Firewall allows RPC traffic\n");
+            RpcBindingFree(&hBinding);
+            return 1;
+        }
+        
+        printf("Endpoint resolved successfully!\n");
+    }
+    
+    // Disable authentication
     RpcBindingSetAuthInfo(hBinding, NULL, RPC_C_AUTHN_LEVEL_NONE, 
                           RPC_C_AUTHN_NONE, NULL, RPC_C_AUTHZ_NONE);
     
@@ -159,10 +239,15 @@ int main(int argc, char* argv[]) {
                     }
                 }
             }
-
         }
         RpcExcept(1) {
-            printf("RPC Exception: 0x%x\n", RpcExceptionCode());
+            unsigned long exception = RpcExceptionCode();
+            printf("RPC Exception: 0x%x\n", exception);
+            
+            if (exception == RPC_S_SERVER_UNAVAILABLE || exception == 0x6ba) {
+                printf("Server unavailable - connection lost\n");
+                break;
+            }
         }
         RpcEndExcept
     }
