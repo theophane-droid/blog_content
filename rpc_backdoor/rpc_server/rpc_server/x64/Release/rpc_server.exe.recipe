@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\myuser\Desktop\blog_content\rpc_server\x64\Release\rpc_server.exe</FullPath>
+      <FullPath>C:\Users\myuser\Desktop\blog_content\rpc_backdoor\rpc_server\x64\Release\rpc_server.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />
