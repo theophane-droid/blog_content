@@ -5,4 +5,5 @@
 *.pcap
 *.log
 .vs/
+.ipynb_checkpoints/
 
