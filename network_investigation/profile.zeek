@@ -22,5 +22,5 @@
 @load policy/misc/capture-loss
 
 # Load ja3 & ja4
-@load policy/protocols/ssl/ja3
+@load ja3
 @load ja4
