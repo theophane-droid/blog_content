@@ -24,3 +24,22 @@
 # Load ja3 & ja4
 @load ja3
 @load ja4
+
+# Files
+@load base/frameworks/files
+
+# Extract all files
+redef FileExtract::default_limit = 0;
+redef FileExtract::prefix = "extract_files"; 
+
+event file_new(f: fa_file)
+    {
+    Files::add_analyzer(f, Files::ANALYZER_EXTRACT);
+    }
+
+# Microsoft proto
+@load base/protocols/dce-rpc
+@load base/protocols/smb
+@load base/protocols/krb
+@load base/protocols/ntlm
+@load base/protocols/rdp
